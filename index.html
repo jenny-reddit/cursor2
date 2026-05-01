@@ -10,6 +10,10 @@
         font-family: Arial, Helvetica, sans-serif;
       }
 
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         align-items: center;
         background: linear-gradient(135deg, #f8fafc, #dbeafe);
@@ -24,8 +28,10 @@
         background: rgba(255, 255, 255, 0.85);
         border-radius: 24px;
         box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
-        padding: 48px;
+        max-width: min(92vw, 640px);
+        padding: clamp(28px, 6vw, 48px);
         text-align: center;
+        width: 100%;
       }
 
       h1 {
@@ -36,7 +42,55 @@
 
       p {
         font-size: 1.25rem;
-        margin: 0;
+        margin: 0 0 28px;
+      }
+
+      button {
+        background: #2563eb;
+        border: 0;
+        border-radius: 999px;
+        color: #ffffff;
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 16px 28px;
+      }
+
+      button:focus-visible {
+        outline: 4px solid #93c5fd;
+        outline-offset: 4px;
+      }
+
+      button:hover {
+        background: #1d4ed8;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .photo-preview {
+        display: none;
+        margin-top: 32px;
+      }
+
+      .photo-preview.visible {
+        display: block;
+      }
+
+      .photo-preview h2 {
+        font-size: 1.25rem;
+        margin: 0 0 16px;
+      }
+
+      .photo-preview img {
+        border-radius: 18px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+        display: block;
+        max-height: 60vh;
+        max-width: 100%;
+        object-fit: contain;
+        width: 100%;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -48,13 +102,55 @@
         main {
           background: rgba(15, 23, 42, 0.86);
         }
+
+        button {
+          background: #60a5fa;
+          color: #0f172a;
+        }
+
+        button:hover {
+          background: #93c5fd;
+        }
       }
     </style>
   </head>
   <body>
     <main>
       <h1>Hello, Andrew!</h1>
-      <p>This static page is ready to publish.</p>
+      <p>Tap the button to take a photo and show it here.</p>
+      <button type="button" id="camera-button">Take a photo</button>
+      <input id="camera-input" type="file" accept="image/*" capture="environment">
+      <section class="photo-preview" id="photo-preview" aria-live="polite">
+        <h2>Your photo</h2>
+        <img id="photo" alt="Photo taken with your camera">
+      </section>
     </main>
+    <script>
+      const cameraButton = document.getElementById("camera-button");
+      const cameraInput = document.getElementById("camera-input");
+      const photoPreview = document.getElementById("photo-preview");
+      const photo = document.getElementById("photo");
+      let photoUrl;
+
+      cameraButton.addEventListener("click", () => {
+        cameraInput.click();
+      });
+
+      cameraInput.addEventListener("change", () => {
+        const file = cameraInput.files && cameraInput.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        if (photoUrl) {
+          URL.revokeObjectURL(photoUrl);
+        }
+
+        photoUrl = URL.createObjectURL(file);
+        photo.src = photoUrl;
+        photoPreview.classList.add("visible");
+      });
+    </script>
   </body>
 </html>
