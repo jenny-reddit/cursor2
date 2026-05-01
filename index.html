@@ -65,17 +65,43 @@
         background: #1d4ed8;
       }
 
-      input[type="file"] {
-        display: none;
-      }
-
+      .camera-panel,
       .photo-preview {
         display: none;
         margin-top: 32px;
       }
 
+      .camera-panel.visible,
       .photo-preview.visible {
         display: block;
+      }
+
+      video,
+      canvas,
+      .photo-preview img {
+        border-radius: 18px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+        display: block;
+        max-width: 100%;
+        width: 100%;
+      }
+
+      video {
+        background: #020617;
+        max-height: 60vh;
+        object-fit: cover;
+      }
+
+      canvas {
+        display: none;
+      }
+
+      .camera-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 20px;
       }
 
       .photo-preview h2 {
@@ -84,13 +110,13 @@
       }
 
       .photo-preview img {
-        border-radius: 18px;
-        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
-        display: block;
         max-height: 60vh;
-        max-width: 100%;
         object-fit: contain;
-        width: 100%;
+      }
+
+      .message {
+        font-size: 1rem;
+        margin: 20px 0 0;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -117,39 +143,88 @@
   <body>
     <main>
       <h1>Hello, Andrew!</h1>
-      <p>Tap the button to take a photo and show it here.</p>
-      <button type="button" id="camera-button">Take a photo</button>
-      <input id="camera-input" type="file" accept="image/*" capture="environment">
+      <p>Tap the button to open your camera, then capture a photo here.</p>
+      <button type="button" id="start-camera">Open camera</button>
+      <section class="camera-panel" id="camera-panel" aria-live="polite">
+        <video id="camera" autoplay playsinline muted></video>
+        <div class="camera-actions">
+          <button type="button" id="capture-photo">Capture photo</button>
+          <button type="button" id="stop-camera">Stop camera</button>
+        </div>
+      </section>
       <section class="photo-preview" id="photo-preview" aria-live="polite">
         <h2>Your photo</h2>
         <img id="photo" alt="Photo taken with your camera">
       </section>
+      <canvas id="canvas"></canvas>
+      <p class="message" id="message" role="status"></p>
     </main>
     <script>
-      const cameraButton = document.getElementById("camera-button");
-      const cameraInput = document.getElementById("camera-input");
+      const startCameraButton = document.getElementById("start-camera");
+      const capturePhotoButton = document.getElementById("capture-photo");
+      const stopCameraButton = document.getElementById("stop-camera");
+      const cameraPanel = document.getElementById("camera-panel");
+      const camera = document.getElementById("camera");
+      const canvas = document.getElementById("canvas");
       const photoPreview = document.getElementById("photo-preview");
       const photo = document.getElementById("photo");
-      let photoUrl;
+      const message = document.getElementById("message");
+      let stream;
 
-      cameraButton.addEventListener("click", () => {
-        cameraInput.click();
-      });
+      function setMessage(text) {
+        message.textContent = text;
+      }
 
-      cameraInput.addEventListener("change", () => {
-        const file = cameraInput.files && cameraInput.files[0];
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          stream = null;
+        }
 
-        if (!file) {
+        camera.srcObject = null;
+        cameraPanel.classList.remove("visible");
+      }
+
+      startCameraButton.addEventListener("click", async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setMessage("Camera access is not available in this browser.");
           return;
         }
 
-        if (photoUrl) {
-          URL.revokeObjectURL(photoUrl);
+        try {
+          stopCamera();
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+            },
+            audio: false,
+          });
+          camera.srcObject = stream;
+          cameraPanel.classList.add("visible");
+          setMessage("Camera is open. Tap Capture photo when ready.");
+        } catch (error) {
+          setMessage("Camera permission was denied or no camera is available.");
+        }
+      });
+
+      capturePhotoButton.addEventListener("click", () => {
+        if (!stream || !camera.videoWidth || !camera.videoHeight) {
+          setMessage("Open the camera before capturing a photo.");
+          return;
         }
 
-        photoUrl = URL.createObjectURL(file);
-        photo.src = photoUrl;
+        canvas.width = camera.videoWidth;
+        canvas.height = camera.videoHeight;
+        canvas.getContext("2d").drawImage(camera, 0, 0, canvas.width, canvas.height);
+
+        photo.src = canvas.toDataURL("image/jpeg", 0.92);
         photoPreview.classList.add("visible");
+        setMessage("Photo captured.");
+      });
+
+      stopCameraButton.addEventListener("click", () => {
+        stopCamera();
+        setMessage("Camera stopped.");
       });
     </script>
   </body>
