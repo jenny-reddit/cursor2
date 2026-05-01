@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hello World</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        align-items: center;
+        background: linear-gradient(135deg, #f8fafc, #dbeafe);
+        color: #0f172a;
+        display: flex;
+        justify-content: center;
+        margin: 0;
+        min-height: 100vh;
+      }
+
+      main {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+        padding: 48px;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: clamp(3rem, 10vw, 6rem);
+        line-height: 1;
+        margin: 0 0 16px;
+      }
+
+      p {
+        font-size: 1.25rem;
+        margin: 0;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: linear-gradient(135deg, #020617, #1e3a8a);
+          color: #e2e8f0;
+        }
+
+        main {
+          background: rgba(15, 23, 42, 0.86);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Hello, world!</h1>
+      <p>This static page is ready to publish.</p>
+    </main>
+  </body>
+</html>
